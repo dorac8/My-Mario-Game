@@ -1,160 +1,272 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# MyMarioGame_A4(17).py
+# 
+# Description: Set up the Mario game by reading data from the input data file
+#              and using this data to initialize variables, then create and
+#              display the maze in which Mario is to move.
+#
+# Author: Anne Lavergne + Dora Ciobanu
+# Date: Nov. 15 2023
 
-# C extensions
-*.so
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# -------------------------------------------------------------------
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+def createMaze(aMaze, aWidth, aHeight, aCell):
+    ''' Create and return "aMaze" of "aWidth" by "aHeight".
+        Each cell of the maze is a string set to "aCell".      
+    '''
+    aMaze = [ [ (aCell) for i in range(aWidth) ] for j in range(aHeight) ]
+    
+    return aMaze
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# -------------------------------------------------------------------
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+# Print Maze - This function is to used for testing and debugging purposes only!
+def printMaze(aMaze, aHeight):
+    ''' Print "aMaze" of "aHeight" - for testing and debugging purposes.
+    ''' 
+    for row in range(aHeight):
+        print(aMaze[row])  
+    return
+		
+# -------------------------------------------------------------------
 
-# Translations
-*.mo
-*.pot
+def createBoundaryList(aWidth, bH = "---"):
+    ''' Create and return a list that contains 2 lists: the first list
+        is the top boundary of the maze and contains a string set to "bH".
+        The second list is the bottom boundary of the maze and it also
+        contains a string set to "bH".
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+        Other parameter:
+         "aWidth" is the width of the maze.
+    '''
+    return list([[(bH) for number in range(aWidth)],
+                 [(bH) for number in range(aWidth)]])                
 
-# Flask stuff:
-instance/
-.webassets-cache
+# -------------------------------------------------------------------
 
-# Scrapy stuff:
-.scrapy
+def displayMaze(aMaze, aWidth, aHeight, hBoundary, bS = "|" ):
+    ''' Display "aMaze" with column numbers at the top and row numbers
+        to the left of each row along with the top and the bottom boundaries
+        "hBoundary" that surround the maze.
 
-# Sphinx documentation
-docs/_build/
+        Other parameters:
+         "aWidth" is the width of the maze.
+         "aHeight" is the height of the maze.
+         "bS" is the symbol used for the vertical border.
+    '''
+    
+    offset = 3
+    aString = (offset+1) * " "
 
-# PyBuilder
-.pybuilder/
-target/
+    print()  
+    # Display a row of numbers from 1 to aWidth
+    for column in range(aWidth):
+        aString = aString + str(column+1) + " "
+        if len(str(column+1)) == 1 :
+            aString += " "           
+    print(aString)
 
-# Jupyter Notebook
-.ipynb_checkpoints
+    # Display the top boundary of maze
+    print(offset * " " + "".join(hBoundary[0])) 
+    
+    # Display a column of numbers from 1 to aHeight
+    # + left and right boundaries of the maze
+    for row in range(aHeight):
+        pre = str(row+1) + " " + bS
 
-# IPython
-profile_default/
-ipython_config.py
+        # If the displayed row number is >= 10 - adjusting for extra digit
+        if row >= 9: # Here 9 since we start at 0
+           pre = str(row+1) + bS
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+        post = bS
+        aRow = pre + ''.join(aMaze[row]) + post
+        print(aRow)
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
+    # Display the bottom boundary of maze
+    print(offset * " " + "".join(hBoundary[1]))
+    
+    return
 
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
+# -------------------------------------------------------------------
 
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
+def placeExitGate(aWidth, aHeight, rowMario, columnMario, hBoundary,
+                  exitGate = " = "):
+    ''' Place the "exitGate" at the opposite corner of Mario's location.
+	In other words, place the "exitGate" either in the top boundary or 
+	in the bottom boundary whichever is at the opposite corner of
+	Mario's location at coordinates ("columnMario","rowMario").
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
+        Other parameters:
+         "aWidth" is the width of the maze.
+         "aHeight" is the height of the maze.
+         "hBoundary" is a list of 2 lists: the first list is the top boundary
+                                   and the second list is the bottom boundary.
 
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
+        Returned value:
+         "hBoundary" updated.
+         "exitGateLocationList" contains coordinates x and y of the "exitgate".
+    '''
+    
+    exitGateRight = False
+    exitGateBottom = False
 
-# SageMath parsed files
-*.sage.py
+    # Create "exitGateLocationList" with initial location of "exitGate"
+    # at the top left of maze
+    exitGateLocationList.insert(0, 0)   
+    exitGateLocationList.insert(1, 0)
+    
+    # Where is Mario?
+    # If Mario is top left then exit gate is bottom right
+    if columnMario <= ((aWidth) // 2) : # Mario on the left?
+        exitGateLocationList[1] = aWidth - 1  # Yes, then "exitGate" on right
+        exitGateRight = True
+    # No, then assuption holds -> exit gate on the left
+    if rowMario <= ((aHeight) // 2) :   # Mario at the top?
+        exitGateLocationList[0] = aHeight - 1  # Yes, then "exitGate" at bottom
+        exitGateBottom = True
+        # No, then initial position of "exitGate" holds at the top left of maze
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+    # Place "exitGate" in appropriate top/bottom boundary
+    if exitGateBottom :
+        del hBoundary[1][exitGateLocationList[1]]
+        hBoundary[1].insert(exitGateLocationList[1], exitGate)
+    else:
+        del hBoundary[0][exitGateLocationList[1]]
+        hBoundary[0].insert(exitGateLocationList[1], exitGate)       
 
-# Spyder project settings
-.spyderproject
-.spyproject
+    # Can return a tuple -> elements sepatared by a coma
+    return hBoundary, exitGateLocationList  
 
-# Rope project settings
-.ropeproject
+# -------------------------------------------------------------------
 
-# mkdocs documentation
-/site
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# ***Main part of the program
 
-# Pyre type checker
-.pyre/
+# Welcome the user and identify the game
+print("""Welcome to my Mario game.\n""")
 
-# pytype static type analyzer
-.pytype/
+# Ask user for filename
+filename = input("Please, enter a filename: ")
 
-# Cython debug symbols
-cython_debug/
+# Open file for reading
+file= open(filename,'r')
 
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+# Read the content of the file, one line at a time, and initialize 
+# the following variables in the order these variables are listed
+# mazeWidth, mazeHeight, aNumOfTreasures, aNumOfBombs must be assigned
+# an integer value
+
+mazeWidth = int(file.readline())
+
+mazeHeight = int(file.readline())
+
+aNumOfTreasures = int(file.readline())
+
+aNumOfBombs = int(file.readline())
+
+# emptyCell, obstacle, mario must be assigned a string
+emptyCell = file.readline().strip("\n")
+
+obstacle = file.readline().strip("\n")
+
+mario = file.readline().strip("\n")
+
+# marioLocationList must contain a list with two elements
+# (of type "str") representing the coordinates x and y of Mario's
+# location in the maze. For example: ['0', '0']
+marioLocationList = file.readline().strip("\n").split()
+
+
+# obstacleLocationDict must be a dictionary with items formatted as
+# follows: {(x,y): -1} if there is a bomb in the cell at location x,y 
+# in the maze and {(x,y): 1} if there is a treasure at the location x,y
+# in the maze. If the cell is empty at the location x,y in the maze,
+# this location is not stored in the dictionary obstacleLocationDict
+
+
+#Create an empty dictionary to load up
+obstacleLocationDict = {}
+#Compute the total number of treasures and bombs(obstacles)
+totalNumOfObstacles = aNumOfTreasures + aNumOfBombs
+#Go through each obstacle and take its x and y  coordinates
+#Check if this obstacle is for a treasure or a bomb
+#For treasure, add key value pair with coordinates as key, 1 as value
+#For bombs, add key value pair with coordinates as key, -1 as value
+for thisObstacle in range(totalNumOfObstacles):
+    aLine=file.readline().strip().split(" ")
+    x= int(aLine[0])
+    y= int(aLine[1])
+    if thisObstacle < aNumOfTreasures:
+        #obstacle is a treasure
+        obstacleLocationDict[(x,y)]=1
+    else:
+        #obstacle if a bomb
+        obstacleLocationDict[(x,y)]=-1
+
+
+# bombScoreRatio must be assigned an integer value
+bombScoreRatio = int(file.readline())
+
+
+# For testing and debugging purposes
+##print(f"mazeWidth = {mazeWidth}")
+##print(f"mazeHeight = {mazeHeight}")
+##print(f"aNumOftreasures = {aNumOfTreasures}")
+##print(f"aNumOfBombs = {aNumOfBombs}")
+##print(f"emptyCell = '{emptyCell}'")
+##print(f"obstacle = '{obstacle}'")
+##print(f"mario = '{mario}'")     
+##print(f"marioLocationList = {marioLocationList}")
+##print(f"obstacleLocationDict = {obstacleLocationDict}")
+##print(f"bombScoreRatio = {bombScoreRatio}")
+
+# Close the file
+file.close()
+
+# Create a maze
+# Make an empty list and use createMaze function
+#Use empty cell symbol to create a maze of all empty cells and iterate across
+#specified width and height
+theMaze = list()
+theMaze = createMaze(theMaze, mazeWidth, mazeHeight, emptyCell)
+
+
+# Create the top and bottom boundaries of the maze
+# These boundaries are not part of the maze
+#Make an empty list and use createBoundaryList
+#Create top and bottom boundaries(lines by lists) with specified width 
+hBoundary = list()
+hBoundary = createBoundaryList(mazeWidth)
+
+# Place the character (string) "obstacle" in the maze
+# This is how we hide the treasures and bombs from the player
+#For each obstacle, take the x and y coordinates and for that position in the
+#maze insert an obstacle symbol in place of empty cell
+for anObstacle in obstacleLocationDict:
+    x=int(anObstacle[0])
+    y=int(anObstacle[1])
+    theMaze[x][y] = obstacle
+
+
+# Place Mario in the maze
+# Put your code here!
+#For the coordinates of mario's location from the list, insert the Mario symbol
+#into the maze
+theMaze[int(marioLocationList[0])][int(marioLocationList[1])]=mario
+
+         
+# Call the appropriate function which computes the location of the
+# exit gate and places it in either the top or the bottom boundary
+exitGateLocationList = list()
+placeExitGate(mazeWidth, mazeHeight, int(marioLocationList[0]),
+              int(marioLocationList[0]), hBoundary, exitGate = " = ")
+
+
+
+# Call the appropriate function to display the maze 
+displayMaze(theMaze, mazeWidth, mazeHeight, hBoundary, bS = "|" )
+
+
+
+print("\n-------")
+
